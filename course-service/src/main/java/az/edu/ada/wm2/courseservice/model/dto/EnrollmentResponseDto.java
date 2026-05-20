@@ -1,5 +1,7 @@
 package az.edu.ada.wm2.courseservice.model.dto;
 
+import java.time.LocalDate;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,4 +25,7 @@ public class EnrollmentResponseDto {
 
     @Schema(description = "Operation result message", example = "Student enrolled successfully.")
     private String message;
+
+    @Schema(description = "Enrollment date", example = "2024-06-01")
+    private LocalDate enrollmentDate;
 }
