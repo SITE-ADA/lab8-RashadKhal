@@ -43,6 +43,7 @@ public class CourseService {
         Course course = Course.builder()
                 .title(requestDto.getTitle())
                 .code(requestDto.getCode())
+                .prerequisiteCourseId(requestDto.getPrerequisiteCourseId())
                 .credits(requestDto.getCredits())
                 .build();
 
@@ -68,7 +69,7 @@ public class CourseService {
         existingCourse.setTitle(requestDto.getTitle());
         existingCourse.setCode(requestDto.getCode());
         existingCourse.setCredits(requestDto.getCredits());
-
+        existingCourse.setPrerequisiteCourseId(requestDto.getPrerequisiteCourseId());
         Course updatedCourse = courseRepository.save(existingCourse);
         return toCourseResponseDto(updatedCourse);
     }
@@ -80,7 +81,8 @@ public class CourseService {
 
     public EnrollmentResponseDto enrollStudent(Long courseId, Long studentId) {
         log.debug("Enrolling student {} into course {}", studentId, courseId);
-        findCourseOrThrow(courseId);
+        Course course =findCourseOrThrow(courseId);
+        validatePrerequisite(course, studentId);
 
         if (enrollmentRepository.existsByCourseIdAndStudentId(courseId, studentId)) {
             throw new EnrollmentAlreadyExistsException(courseId, studentId);
@@ -148,12 +150,35 @@ public class CourseService {
         return courseRepository.findById(id).orElseThrow(() -> new CourseNotFoundException(id));
     }
 
+    private void validatePrerequisite(Course course, Long studentId) {
+
+        Long prerequisiteId = course.getPrerequisiteCourseId();
+
+        if (prerequisiteId == null) {
+            return;
+        }
+
+        boolean prerequisiteCompleted =
+                enrollmentRepository.existsByCourseIdAndStudentId(
+                        prerequisiteId,
+                        studentId
+                );
+
+        if (!prerequisiteCompleted) {
+            throw new IllegalStateException(
+                    "Student must complete prerequisite course with id: "
+                            + prerequisiteId
+            );
+        }
+    }
+
     private CourseResponseDto toCourseResponseDto(Course course) {
         return new CourseResponseDto(
                 course.getId(),
                 course.getTitle(),
                 course.getCode(),
-                course.getCredits()
+                course.getCredits(),
+                course.getPrerequisiteCourseId()
         );
     }
 }
