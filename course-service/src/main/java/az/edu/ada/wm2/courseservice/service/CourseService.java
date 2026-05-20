@@ -123,6 +123,31 @@ public class CourseService {
         return new CourseStudentsResponseDto(course.getId(), course.getTitle(), students);
     }
 
+    public List<CourseResponseDto> getCoursesByStudentName(String studentName) {
+
+        log.debug("Fetching courses for student name {}", studentName);
+
+        List<StudentDto> students = studentFeignClient.getAllStudents();
+
+        StudentDto matchedStudent = students.stream()
+               .filter(student -> student.getFirstName().equalsIgnoreCase(studentName))
+                .findFirst()
+                .orElseThrow(() ->
+                        new RemoteStudentNotFoundException(-1L)
+                );
+
+        List<Long> courseIds = enrollmentRepository
+                .findByStudentId(matchedStudent.getId())
+                .stream()
+                .map(Enrollment::getCourseId)
+                .toList();
+
+        return courseIds.stream()
+                .map(this::findCourseOrThrow)
+                .map(this::toCourseResponseDto)
+                .toList();
+    }   
+
     private void validateStudentWithFeign(Long studentId) {
         try {
             log.debug("Validating student {} via Feign", studentId);
