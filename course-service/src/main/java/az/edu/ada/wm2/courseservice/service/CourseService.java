@@ -3,6 +3,7 @@ package az.edu.ada.wm2.courseservice.service;
 import az.edu.ada.wm2.courseservice.client.StudentFeignClient;
 import az.edu.ada.wm2.courseservice.exception.CourseNotFoundException;
 import az.edu.ada.wm2.courseservice.exception.EnrollmentAlreadyExistsException;
+import az.edu.ada.wm2.courseservice.exception.PrerequisiteNotCompletedException;
 import az.edu.ada.wm2.courseservice.exception.RemoteStudentNotFoundException;
 import az.edu.ada.wm2.courseservice.exception.StudentServiceCommunicationException;
 import az.edu.ada.wm2.courseservice.model.dto.CourseRequestDto;
@@ -165,10 +166,7 @@ public class CourseService {
                 );
 
         if (!prerequisiteCompleted) {
-            throw new IllegalStateException(
-                    "Student must complete prerequisite course with id: "
-                            + prerequisiteId
-            );
+            throw new PrerequisiteNotCompletedException(prerequisiteId);
         }
     }
 

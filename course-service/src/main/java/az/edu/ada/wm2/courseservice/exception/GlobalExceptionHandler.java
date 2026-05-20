@@ -79,4 +79,22 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(response, status);
     }
+
+    @ExceptionHandler(PrerequisiteNotCompletedException.class)
+    public ResponseEntity<ApiErrorResponse> handlePrerequisiteException(
+            PrerequisiteNotCompletedException ex
+    ) {
+
+        ApiErrorResponse errorResponse = new ApiErrorResponse(
+            LocalDateTime.now(),
+            HttpStatus.BAD_REQUEST.value(),
+            HttpStatus.BAD_REQUEST.getReasonPhrase(),   
+            "Prerequisite validation failed",
+            ex.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(errorResponse);
+    }
 }
